@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class Cadastro extends StatefulWidget {
   @override
@@ -8,16 +10,19 @@ class Cadastro extends StatefulWidget {
 class _CadastroState extends State<Cadastro> {
   final PageController _pageController = PageController();
   int _currentIndex = 0;
-  
+
   final TextEditingController _nomeController = TextEditingController();
   final TextEditingController _cpfController = TextEditingController();
-  final TextEditingController _dataNascimentoController = TextEditingController();
+  final TextEditingController _dataNascimentoController =
+      TextEditingController();
   String _sexo = 'Masculino';
-  
+
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _senhaController = TextEditingController();
-  
+
   bool _cadastroGoogle = false;
+
+  File? _profileImage;
 
   @override
   void dispose() {
@@ -30,7 +35,50 @@ class _CadastroState extends State<Cadastro> {
     super.dispose();
   }
 
+  Future<void> _pickImage(ImageSource source) async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: source);
+
+    if (pickedFile != null) {
+      setState(() {
+        _profileImage = File(pickedFile.path);
+      });
+    }
+  }
+
+  void _showImageSourceOptions() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              ListTile(
+                leading: Icon(Icons.photo_library),
+                title: Text('Galeria'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.camera_alt),
+                title: Text('Câmera'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   void _salvarCadastro() {
+    // Salve os dados do cadastro, incluindo a imagem do perfil
     _nomeController.clear();
     _cpfController.clear();
     _emailController.clear();
@@ -40,6 +88,7 @@ class _CadastroState extends State<Cadastro> {
       _sexo = 'Masculino';
       _cadastroGoogle = false;
       _currentIndex = 0;
+      _profileImage = null;
     });
     Navigator.pop(context);
   }
@@ -63,28 +112,34 @@ class _CadastroState extends State<Cadastro> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.green,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Cadastro',
-              style: TextStyle(color: Colors.white, fontSize: 24),
-            ),
-            SizedBox(width: 48),
-          ],
+        title: Text(
+          'Cadastro',
+          style: TextStyle(color: Colors.white, fontSize: 24),
         ),
       ),
       body: PageView(
         controller: _pageController,
-        physics: NeverScrollableScrollPhysics(), // Desabilita a rolagem manual
+        physics: NeverScrollableScrollPhysics(),
         onPageChanged: _onPageChanged,
         children: [
-          // Primeira página: Informações Pessoais
           SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                GestureDetector(
+                  onTap: _showImageSourceOptions,
+                  child: CircleAvatar(
+                    radius: 50,
+                    backgroundImage: _profileImage != null
+                        ? FileImage(_profileImage!)
+                        : null,
+                    child: _profileImage == null
+                        ? Icon(Icons.camera_alt, size: 50)
+                        : null,
+                  ),
+                ),
+                SizedBox(height: 20),
                 TextField(
                   controller: _nomeController,
                   decoration: InputDecoration(
@@ -156,7 +211,6 @@ class _CadastroState extends State<Cadastro> {
               ],
             ),
           ),
-          // Segunda página: Email e Senha
           SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: Column(
