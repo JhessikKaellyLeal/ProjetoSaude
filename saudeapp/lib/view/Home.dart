@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:saudeapp/view/ControledeMedidas.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
+import 'RegistroIMC.dart';
+import 'ControledeMedidas.dart'; // Certifique-se de que este import está correto
+import 'BeberAgua.dart'; // Certifique-se de que este import está correto
+import 'package:intl/intl.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -7,11 +12,43 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  int _currentWaterIntake = 0;
+  double waterIntake = 0;
 
-  void _incrementWaterIntake() {
+  List<_ChartData> imcData = [
+    _ChartData('Sem 1', 20),
+    _ChartData('Sem 2', 22),
+    _ChartData('Sem 3', 19),
+    _ChartData('Sem 4', 21),
+    _ChartData('Sem 5', 18),
+  ];
+
+  void addWater() {
     setState(() {
-      _currentWaterIntake += 200;
+      waterIntake += 200;
+    });
+  }
+
+  void removeWater() {
+    setState(() {
+      if (waterIntake >= 200) {
+        waterIntake -= 200;
+      }
+    });
+  }
+
+  void _updateIMC(double imc, DateTime date) {
+    setState(() {
+      final String formattedDate = DateFormat('dd/MM').format(date);
+      imcData.add(_ChartData(formattedDate, imc));
+    });
+  }
+
+  final PageController _pageController = PageController();
+  int _currentIndex = 0;
+
+  void _onPageChanged(int index) {
+    setState(() {
+      _currentIndex = index;
     });
   }
 
@@ -19,95 +56,94 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Controle de Peso e IMC'),
+        title: Text('Home'),
         backgroundColor: Colors.green,
-        actions: [
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              // Lógica para seleção do menu
-            },
-            itemBuilder: (BuildContext context) {
-              return {'Perfil', 'Configurações', 'Sair'}
-                  .map((String choice) {
-                return PopupMenuItem<String>(
-                  value: choice,
-                  child: Text(choice),
-                );
-              }).toList();
-            },
-          ),
-        ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'Evolução de Peso e IMC',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 20),
-            Container(
-              height: 300,
-              child: SfCartesianChart(
-                primaryXAxis: NumericAxis(),
-                series: <ChartSeries>[
-                  LineSeries<WeightData, int>(
-                    dataSource: <WeightData>[
-                      WeightData(0, 70),
-                      WeightData(1, 69.5),
-                      WeightData(2, 69),
-                      WeightData(3, 68.8),
-                      WeightData(4, 68.5),
-                      WeightData(5, 68.3),
-                    ],
-                    xValueMapper: (WeightData data, _) => data.week,
-                    yValueMapper: (WeightData data, _) => data.weight,
-                    color: Colors.green,
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: _onPageChanged,
+        children: [
+          // Página 1: Perfil do Usuário e Gráfico
+          Center(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Foto de perfil centralizada
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundImage: AssetImage('assets/images/profile.jpg'),
+                  ),
+                  SizedBox(height: 20),
+
+                  // Gráfico de evolução do IMC
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: SfCartesianChart(
+                      primaryXAxis: CategoryAxis(),
+                      series: <LineSeries<_ChartData, String>>[
+                        LineSeries<_ChartData, String>(
+                          dataSource: imcData,
+                          xValueMapper: (_ChartData data, _) => data.x,
+                          yValueMapper: (_ChartData data, _) => data.y,
+                          color: Colors.green,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
-            SizedBox(height: 20),
-            Text(
-              'Registro de Água',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 10),
-            Text(
-              'Consumo diário: $_currentWaterIntake ml',
-              style: TextStyle(fontSize: 20, color: Colors.green.shade700),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
+          ),
+          // Página 2: Tela para Beber Água
+          BeberAgua(), // Substitua pelo nome correto da classe
+          // Página 3: Controle de Medidas Corporais
+          ControleMedidas(), // Substitua pelo nome correto da classe
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          _pageController.animateToPage(
+            index,
+            duration: Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+        },
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.show_chart),
+            label: 'Gráfico',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.local_drink),
+            label: 'Água',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.scale),
+            label: 'Medidas',
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementWaterIntake,
-        child: Icon(Icons.local_drink),
-        backgroundColor: Colors.green.shade700,
-      ),
-      bottomNavigationBar: BottomAppBar(
-        color: Colors.green,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Text(
-            'Desenvolvido por Jhessik Kaelly Bezerra Leal - 2024',
-            style: TextStyle(color: Colors.white, fontSize: 14),
-            textAlign: TextAlign.center,
-          ),
-        ),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => RegistroIMC(onIMCUpdated: _updateIMC),
+            ),
+          );
+        },
+        child: Icon(Icons.add_chart),
+        backgroundColor: Colors.green,
       ),
     );
   }
 }
 
-class WeightData {
-  final int week;
-  final double weight;
+class _ChartData {
+  _ChartData(this.x, this.y);
 
-  WeightData(this.week, this.weight);
+  final String x;
+  final double y;
 }

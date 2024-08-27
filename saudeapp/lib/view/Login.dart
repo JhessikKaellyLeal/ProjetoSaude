@@ -30,14 +30,7 @@ class _LoginState extends State<Login> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
                   Image.asset('assets/logo.png',height: 100),
-                ],
-            ),
-            
-          
             TextField(
               decoration: InputDecoration(
                 labelText: 'Email',
