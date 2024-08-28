@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:saudeapp/control/bancoDados.dart';
 import 'dart:io';
 
 class ControleMedidas extends StatefulWidget {
@@ -10,6 +11,7 @@ class ControleMedidas extends StatefulWidget {
 class _ControleMedidasState extends State<ControleMedidas> {
   final TextEditingController _cinturaController = TextEditingController();
   final TextEditingController _quadrilController = TextEditingController();
+  final DatabaseHelper dbHelper = DatabaseHelper();
   final List<MedidaCorporal> _medidas = [];
 
   void _adicionarMedida({bool fromCamera = false}) async {
@@ -22,6 +24,13 @@ class _ControleMedidasState extends State<ControleMedidas> {
       );
 
       if (image != null) {
+        await dbHelper.addMeasurement(
+          cintura,
+          quadril,
+          DateTime.now(),
+          image.path,
+        ); // Salvar no banco de dados
+
         setState(() {
           _medidas.add(MedidaCorporal(
             cintura: cintura,
@@ -36,7 +45,9 @@ class _ControleMedidasState extends State<ControleMedidas> {
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Por favor, insira valores válidos para cintura e quadril!')),
+        SnackBar(
+            content: Text(
+                'Por favor, insira valores válidos para cintura e quadril!')),
       );
     }
   }
@@ -89,8 +100,8 @@ class _ControleMedidasState extends State<ControleMedidas> {
                     label: Text('Capturar Foto'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
-                      disabledBackgroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     ),
                   ),
                   SizedBox(width: 20),
@@ -100,8 +111,8 @@ class _ControleMedidasState extends State<ControleMedidas> {
                     label: Text('Selecionar da Galeria'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
-                      disabledBackgroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     ),
                   ),
                 ],

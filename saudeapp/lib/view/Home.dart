@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:saudeapp/view/ControledeMedidas.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'RegistroIMC.dart';
-import 'ControledeMedidas.dart'; // Certifique-se de que este import está correto
-import 'BeberAgua.dart'; // Certifique-se de que este import está correto
+import 'BeberAgua.dart';
+import 'ControledeMedidas.dart';
 import 'package:intl/intl.dart';
+import 'dart:io';
+import 'package:saudeapp/control/imcController.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -12,28 +13,31 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  double waterIntake = 0;
+  late String profileImagePath; // Caminho da foto de perfil
+  List<_ChartData> imcData = [];
+  final PageController _pageController = PageController();
+  int _currentIndex = 0;
+  final IMCController imcController = IMCController();
 
-  List<_ChartData> imcData = [
-    _ChartData('Sem 1', 20),
-    _ChartData('Sem 2', 22),
-    _ChartData('Sem 3', 19),
-    _ChartData('Sem 4', 21),
-    _ChartData('Sem 5', 18),
-  ];
-
-  void addWater() {
-    setState(() {
-      waterIntake += 200;
-    });
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
   }
 
-  void removeWater() {
-    setState(() {
-      if (waterIntake >= 200) {
-        waterIntake -= 200;
-      }
-    });
+  Future<void> _loadData() async {
+    try {
+      final records = await imcController.getIMCRecords();
+      setState(() {
+        profileImagePath = 'assets/images/profile.jpg';
+        imcData = records.map((record) {
+          final formattedDate = DateFormat('dd/MM').format(record.data);
+          return _ChartData(formattedDate, record.imc);
+        }).toList();
+      });
+    } catch (e) {
+      print('Erro ao carregar dados: $e');
+    }
   }
 
   void _updateIMC(double imc, DateTime date) {
@@ -42,9 +46,6 @@ class _HomeState extends State<Home> {
       imcData.add(_ChartData(formattedDate, imc));
     });
   }
-
-  final PageController _pageController = PageController();
-  int _currentIndex = 0;
 
   void _onPageChanged(int index) {
     setState(() {
@@ -72,7 +73,7 @@ class _HomeState extends State<Home> {
                   // Foto de perfil centralizada
                   CircleAvatar(
                     radius: 50,
-                    backgroundImage: AssetImage('assets/images/profile.jpg'),
+                    backgroundImage: FileImage(File(profileImagePath)),
                   ),
                   SizedBox(height: 20),
 
@@ -96,9 +97,9 @@ class _HomeState extends State<Home> {
             ),
           ),
           // Página 2: Tela para Beber Água
-          BeberAgua(), // Substitua pelo nome correto da classe
+          BeberAgua(),
           // Página 3: Controle de Medidas Corporais
-          ControleMedidas(), // Substitua pelo nome correto da classe
+          ControleMedidas(),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
