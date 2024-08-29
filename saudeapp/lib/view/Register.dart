@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:saudeapp/control/userController.dart';
+import 'package:saudeapp/control/UserController.dart';
 import 'dart:io';
-
+import 'dart:typed_data';
 import 'package:saudeapp/model/user.dart';
 
 class Cadastro extends StatefulWidget {
@@ -24,8 +24,8 @@ class _CadastroState extends State<Cadastro> {
   final TextEditingController _senhaController = TextEditingController();
 
   bool _cadastroGoogle = false;
-
   File? _profileImage;
+  Uint8List? _imageBytes;
 
   @override
   void dispose() {
@@ -45,6 +45,7 @@ class _CadastroState extends State<Cadastro> {
     if (pickedFile != null) {
       setState(() {
         _profileImage = File(pickedFile.path);
+        _imageBytes = _profileImage!.readAsBytesSync();
       });
     }
   }
@@ -91,11 +92,15 @@ class _CadastroState extends State<Cadastro> {
         sexo: _sexo,
         email: _emailController.text,
         senha: _senhaController.text,
-        profileImagePath: _profileImage?.path,
       );
 
       // Salvar o usuário
-      await userController.saveUser(newUser);
+      int userId = await userController.saveUser(newUser);
+
+      // Salvar a imagem de perfil, se disponível
+      if (_imageBytes != null) {
+        await userController.saveProfileImage(userId, _imageBytes!);
+      }
 
       // Limpar os campos
       _nomeController.clear();
@@ -109,6 +114,7 @@ class _CadastroState extends State<Cadastro> {
         _cadastroGoogle = false;
         _currentIndex = 0;
         _profileImage = null;
+        _imageBytes = null;
       });
 
       // Mostrar mensagem de sucesso

@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:saudeapp/control/bancoDados.dart';
 import 'package:saudeapp/model/user.dart';
 import 'package:sqflite/sqflite.dart';
@@ -57,4 +60,17 @@ class UserController {
       whereArgs: [id],
     );
   }
+
+  Future<void> saveProfileImage(int userId, Uint8List imageBytes) async {
+    Database db = await _databaseHelper.database;
+
+    await db.update(
+      'users',
+      {'profileImage': imageBytes},
+      where: 'id = ?',
+      whereArgs: [userId],
+    );
+  }
+
+  // Método para salvar a imagem de perfil
 }

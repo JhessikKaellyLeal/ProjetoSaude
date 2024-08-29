@@ -4,8 +4,11 @@ import 'RegistroIMC.dart';
 import 'BeberAgua.dart';
 import 'ControledeMedidas.dart';
 import 'package:intl/intl.dart';
+import 'dart:typed_data';
 import 'dart:io';
 import 'package:saudeapp/control/imcController.dart';
+import 'package:saudeapp/control/userController.dart'; // Adicione o import para o UserController
+import 'package:saudeapp/model/user.dart'; // Adicione esta linha
 
 class Home extends StatefulWidget {
   @override
@@ -13,11 +16,14 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  late String profileImagePath; // Caminho da foto de perfil
+  late Uint8List profileImageBytes; // Imagem de perfil em bytes
+  late bool hasProfileImage; // Verifica se a imagem de perfil existe
   List<_ChartData> imcData = [];
   final PageController _pageController = PageController();
   int _currentIndex = 0;
   final IMCController imcController = IMCController();
+  final UserController userController =
+      UserController(); // Adicione o UserController
 
   @override
   void initState() {
@@ -29,7 +35,8 @@ class _HomeState extends State<Home> {
     try {
       final records = await imcController.getIMCRecords();
       setState(() {
-        profileImagePath = 'assets/images/profile.jpg';
+        // Carregar a imagem de perfil do banco de dados
+        _loadProfileImage();
         imcData = records.map((record) {
           final formattedDate = DateFormat('dd/MM').format(record.data);
           return _ChartData(formattedDate, record.imc);
@@ -37,6 +44,25 @@ class _HomeState extends State<Home> {
       });
     } catch (e) {
       print('Erro ao carregar dados: $e');
+    }
+  }
+
+  Future<void> _loadProfileImage() async {
+    try {
+      // Suponha que o ID do usuário logado seja 1 (modifique conforme necessário)
+      User? user = await userController.getUserById(1);
+      if (user != null && user.profileImage != null) {
+        setState(() {
+          profileImageBytes = user.profileImage!;
+          hasProfileImage = true;
+        });
+      } else {
+        setState(() {
+          hasProfileImage = false;
+        });
+      }
+    } catch (e) {
+      print('Erro ao carregar a imagem de perfil: $e');
     }
   }
 
@@ -73,7 +99,12 @@ class _HomeState extends State<Home> {
                   // Foto de perfil centralizada
                   CircleAvatar(
                     radius: 50,
-                    backgroundImage: FileImage(File(profileImagePath)),
+                    backgroundImage: hasProfileImage
+                        ? MemoryImage(profileImageBytes)
+                        : AssetImage('assets/images/default_profile.png')
+                            as ImageProvider,
+                    child:
+                        !hasProfileImage ? Icon(Icons.person, size: 50) : null,
                   ),
                   SizedBox(height: 20),
 

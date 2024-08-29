@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:saudeapp/control/bancoDados.dart';
 import 'package:saudeapp/model/user.dart';
@@ -22,17 +23,5 @@ class LoginController {
     }
   }
 
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
-
-  Future<GoogleSignInAccount?> loginWithGoogle() async {
-    try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      return googleUser;
-    } catch (e) {
-      // Handle the error here
-      print('Error signing in with Google: $e');
-      return null;
-    }
-  }
-  // Implementação futura: Método para login com Google (pode usar GoogleSignIn package)
+  // Método para login com Google
 }

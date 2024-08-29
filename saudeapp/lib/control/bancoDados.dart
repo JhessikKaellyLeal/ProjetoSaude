@@ -29,16 +29,16 @@ class DatabaseHelper {
     // Tabela de Usuários
     await db.execute('''
       CREATE TABLE users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nome TEXT NOT NULL,
-        cpf TEXT NOT NULL,
-        dataNascimento TEXT NOT NULL,
-        sexo TEXT NOT NULL,
-        email TEXT NOT NULL,
-        senha TEXT NOT NULL,
-        profileImagePath TEXT
-      )
-    ''');
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      nome TEXT NOT NULL,
+      cpf TEXT NOT NULL,
+      dataNascimento TEXT NOT NULL,
+      sexo TEXT NOT NULL,
+      email TEXT NOT NULL,
+      senha TEXT NOT NULL,
+      profileImage TEXT
+    )
+  ''');
 
     // Tabela de IMC
     await db.execute('''

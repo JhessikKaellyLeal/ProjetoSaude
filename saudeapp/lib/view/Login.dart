@@ -23,31 +23,22 @@ class _LoginState extends State<Login> {
   }
 
   Future<void> _loginWithEmailAndPassword() async {
-    User? user = await _loginController.loginWithEmailAndPassword(
-      _emailController.text,
-      _senhaController.text,
-    );
-
-    if (user != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => Home()),
+    try {
+      User? user = await _loginController.loginWithEmailAndPassword(
+        _emailController.text,
+        _senhaController.text,
       );
-    } else {
-      _showErrorDialog('Email ou senha incorretos.');
-    }
-  }
 
-  Future<void> _loginWithGoogle() async {
-    GoogleSignInAccount? googleUser = await _loginController.loginWithGoogle();
-
-    if (googleUser != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => Home()),
-      );
-    } else {
-      _showErrorDialog('Falha no login com Google.');
+      if (user != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => Home()),
+        );
+      } else {
+        _showErrorDialog('Email ou senha incorretos.');
+      }
+    } catch (e) {
+      _showErrorDialog('Erro ao fazer login: $e');
     }
   }
 
@@ -118,17 +109,6 @@ class _LoginState extends State<Login> {
                 padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
               ),
               child: Text('Login com Email'),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: _loginWithGoogle,
-              icon: Icon(Icons.login),
-              label: Text('Login com Google'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green.shade400,
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-              ),
             ),
             SizedBox(height: 20),
             TextButton(

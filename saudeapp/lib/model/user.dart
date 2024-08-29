@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 class User {
   int? id;
   String nome;
@@ -6,7 +9,7 @@ class User {
   String sexo;
   String email;
   String senha;
-  String? profileImagePath;
+  Uint8List? profileImage;
 
   User({
     this.id,
@@ -16,7 +19,7 @@ class User {
     required this.sexo,
     required this.email,
     required this.senha,
-    this.profileImagePath,
+    this.profileImage,
   });
 
   // Método para converter os dados do usuário para um mapa (para SQLite)
@@ -29,7 +32,7 @@ class User {
       'sexo': sexo,
       'email': email,
       'senha': senha,
-      'profileImagePath': profileImagePath,
+      'profileImage': profileImage != null ? base64Encode(profileImage!) : null,
     };
   }
 
@@ -43,7 +46,9 @@ class User {
       sexo: map['sexo'],
       email: map['email'],
       senha: map['senha'],
-      profileImagePath: map['profileImagePath'],
+      profileImage: map['profileImage'] != null
+          ? (map['profileImage'] as Uint8List)
+          : null,
     );
   }
 }
