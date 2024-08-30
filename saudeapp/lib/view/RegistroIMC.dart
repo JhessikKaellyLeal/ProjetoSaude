@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Para formatar a data
+import 'package:saudeapp/control/imcController.dart';
 
 class RegistroIMC extends StatefulWidget {
   final Function(double, DateTime) onIMCUpdated;
@@ -13,6 +13,7 @@ class RegistroIMC extends StatefulWidget {
 class _RegistroIMCState extends State<RegistroIMC> {
   final TextEditingController _pesoController = TextEditingController();
   final TextEditingController _alturaController = TextEditingController();
+  final IMCController imcController = IMCController();
 
   double _imc = 0;
 
@@ -27,15 +28,23 @@ class _RegistroIMCState extends State<RegistroIMC> {
     }
   }
 
-  void _registrarIMC() {
+  void _registrarIMC() async {
     if (_imc > 0) {
       final DateTime now = DateTime.now();
-      widget.onIMCUpdated(_imc, now);
-      _pesoController.clear();
-      _alturaController.clear();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('IMC registrado com sucesso!')),
-      );
+      try {
+        await imcController.registrarIMC(_imc, now);
+        widget.onIMCUpdated(_imc, now);
+        _pesoController.clear();
+        _alturaController.clear();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('IMC registrado com sucesso!')),
+        );
+      } catch (e) {
+        print('Erro ao registrar IMC: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao registrar IMC.')),
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Por favor, insira peso e altura válidos!')),
@@ -84,7 +93,6 @@ class _RegistroIMCState extends State<RegistroIMC> {
               child: Text('Registrar IMC'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
-                disabledBackgroundColor: Colors.white,
                 padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
               ),
             ),
