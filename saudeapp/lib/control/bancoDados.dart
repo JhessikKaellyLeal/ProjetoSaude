@@ -45,18 +45,12 @@ class DatabaseHelper {
       CREATE TABLE imc (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         valor REAL NOT NULL,
-        data TEXT NOT NULL
+        data TEXT NOT NULL,
+        idusuario INTEGER NOT NULL,
+        FOREIGN KEY (idusuario) REFERENCES users(id)
       )
     ''');
 
-    // Tabela de Água
-    await db.execute('''
-      CREATE TABLE agua (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        quantidade REAL NOT NULL,
-        data TEXT NOT NULL
-      )
-    ''');
 
     // Tabela de Medidas Corporais
     await db.execute('''
@@ -65,53 +59,11 @@ class DatabaseHelper {
         cintura REAL NOT NULL,
         quadril REAL NOT NULL,
         data TEXT NOT NULL,
-        imagem TEXT
+        imagem TEXT,
+        idusuario INTEGER NOT NULL,
+        FOREIGN KEY (idusuario) REFERENCES users(id)
       )
     ''');
   }
 
-  // Métodos para IMC
-  Future<int> addIMC(double valor, DateTime data) async {
-    final db = await database;
-    return await db.insert('imc', {
-      'valor': valor,
-      'data': data.toIso8601String(),
-    });
-  }
-
-  Future<List<Map<String, dynamic>>> getIMC() async {
-    final db = await database;
-    return await db.query('imc');
-  }
-
-  // Métodos para Água
-  Future<int> addWater(double quantidade, DateTime data) async {
-    final db = await database;
-    return await db.insert('agua', {
-      'quantidade': quantidade,
-      'data': data.toIso8601String(),
-    });
-  }
-
-  Future<List<Map<String, dynamic>>> getWater() async {
-    final db = await database;
-    return await db.query('agua');
-  }
-
-  // Métodos para Medidas Corporais
-  Future<int> addMeasurement(
-      double cintura, double quadril, DateTime data, String imagem) async {
-    final db = await database;
-    return await db.insert('medidas', {
-      'cintura': cintura,
-      'quadril': quadril,
-      'data': data.toIso8601String(),
-      'imagem': imagem,
-    });
-  }
-
-  Future<List<Map<String, dynamic>>> getMeasurements() async {
-    final db = await database;
-    return await db.query('medidas');
-  }
 }

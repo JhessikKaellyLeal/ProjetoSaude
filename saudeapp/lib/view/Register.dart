@@ -11,15 +11,14 @@ class Cadastro extends StatefulWidget {
 }
 
 class _CadastroState extends State<Cadastro> {
+
   final PageController _pageController = PageController();
   int _currentIndex = 0;
-
   final TextEditingController _nomeController = TextEditingController();
   final TextEditingController _cpfController = TextEditingController();
   final TextEditingController _dataNascimentoController =
-      TextEditingController();
+    TextEditingController();
   String _sexo = 'Masculino';
-
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _senhaController = TextEditingController();
 
@@ -81,7 +80,17 @@ class _CadastroState extends State<Cadastro> {
     );
   }
 
+
+
+
+
+
+
+
+
+
   void _salvarCadastro() async {
+
     try {
       UserController userController = UserController();
 
@@ -127,7 +136,7 @@ class _CadastroState extends State<Cadastro> {
       );
 
       // Retornar à tela de login (assumindo que é a primeira tela no stack)
-      Navigator.popUntil(context, ModalRoute.withName('/login'));
+      Navigator.popUntil(context, ModalRoute.withName('/'));
     } catch (e) {
       // Mostrar mensagem de erro
       ScaffoldMessenger.of(context).showSnackBar(
@@ -153,6 +162,49 @@ class _CadastroState extends State<Cadastro> {
       curve: Curves.easeInOut,
     );
   }
+
+
+//criar metodo para salvar cadastro
+void salvarcadastro()async{
+  // try catch serve para tratar erros
+  try{ 
+    // Objeto da classe user controller
+    // variavel me permite chamar o metodo de salvar usuário
+    UserController useController = UserController();
+    
+    // salvar os dados que o usuário digitou na classe model
+    // User é minha classe model do usuário
+    User usuario =User(
+        nome: _nomeController.text,
+        cpf: _cpfController.text,
+        dataNascimento: _dataNascimentoController.text,
+        sexo: _sexo,
+        email: _emailController.text,
+        senha: _senhaController.text,
+    ); // final da inserção dos dados na classe model
+
+    // salvar usuário 
+    int userId = await useController.addUser(usuario);
+    /* criando uma variavel do tipo int para guardar o id do novo
+     usuario criado, e manda ao banco de dados através do
+     metodo de adicionar um novo usuário*/
+
+     //mensagem de sucesso para o cadastro
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Cadastro realizado com sucesso!"), 
+          backgroundColor: Colors.green, //mensagem em caixa verde
+          duration: Duration(seconds: 5),// mensagem dura 5 segundos
+        ), 
+      );
+
+
+  }catch(e){
+
+  }
+
+}//final do metodo salvar cadastro
+
 
   @override
   Widget build(BuildContext context) {

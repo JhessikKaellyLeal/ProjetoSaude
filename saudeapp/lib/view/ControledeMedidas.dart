@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:saudeapp/control/bancoDados.dart';
-import 'dart:io';
+import 'package:saudeapp/control/MedidasCorporaisController.dart';
+import 'dart:typed_data';
+import 'package:saudeapp/model/medidasCorporais.dart';
 
 class ControleMedidas extends StatefulWidget {
+  final int userId; // Recebe o ID do usuário
+
+  ControleMedidas({required this.userId});
+
   @override
   _ControleMedidasState createState() => _ControleMedidasState();
 }
@@ -11,8 +16,21 @@ class ControleMedidas extends StatefulWidget {
 class _ControleMedidasState extends State<ControleMedidas> {
   final TextEditingController _cinturaController = TextEditingController();
   final TextEditingController _quadrilController = TextEditingController();
-  final DatabaseHelper dbHelper = DatabaseHelper();
+  final MedidaCorporalController _medidaController = MedidaCorporalController();
   final List<MedidaCorporal> _medidas = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _carregarMedidas();
+  }
+
+  Future<void> _carregarMedidas() async {
+    final medidas = await _medidaController.getMedidasByUserId(widget.userId);
+    setState(() {
+      _medidas.addAll(medidas);
+    });
+  }
 
   void _adicionarMedida({bool fromCamera = false}) async {
     final double cintura = double.tryParse(_cinturaController.text) ?? 0;
@@ -24,19 +42,27 @@ class _ControleMedidasState extends State<ControleMedidas> {
       );
 
       if (image != null) {
-        await dbHelper.addMeasurement(
-          cintura,
-          quadril,
-          DateTime.now(),
-          image.path,
-        ); // Salvar no banco de dados
+        final imageBytes = await image.readAsBytes();
+        final userId = widget.userId;
 
-        setState(() {
-          _medidas.add(MedidaCorporal(
+        final id = await _medidaController.saveMedidaCorporal(
+          MedidaCorporal(
             cintura: cintura,
             quadril: quadril,
             data: DateTime.now(),
-            imagePath: image.path,
+            imagePath: imageBytes,
+            idusuario: userId,
+          ),
+        );
+
+        setState(() {
+          _medidas.add(MedidaCorporal(
+            id: id,
+            cintura: cintura,
+            quadril: quadril,
+            data: DateTime.now(),
+            imagePath: imageBytes,
+            idusuario: userId,
           ));
         });
 
@@ -46,17 +72,17 @@ class _ControleMedidasState extends State<ControleMedidas> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text(
-                'Por favor, insira valores válidos para cintura e quadril!')),
+          content: Text('Por favor, insira valores válidos para cintura e quadril!'),
+        ),
       );
     }
   }
 
-  void _mostrarImagem(String imagePath) {
+  void _mostrarImagem(Uint8List imageBytes) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => VisualizarImagem(imagePath: imagePath),
+        builder: (context) => VisualizarImagem(imageBytes: imageBytes),
       ),
     );
   }
@@ -100,8 +126,7 @@ class _ControleMedidasState extends State<ControleMedidas> {
                     label: Text('Capturar Foto'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     ),
                   ),
                   SizedBox(width: 20),
@@ -111,8 +136,7 @@ class _ControleMedidasState extends State<ControleMedidas> {
                     label: Text('Selecionar da Galeria'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     ),
                   ),
                 ],
@@ -148,24 +172,10 @@ class _ControleMedidasState extends State<ControleMedidas> {
   }
 }
 
-class MedidaCorporal {
-  final double cintura;
-  final double quadril;
-  final DateTime data;
-  final String imagePath;
-
-  MedidaCorporal({
-    required this.cintura,
-    required this.quadril,
-    required this.data,
-    required this.imagePath,
-  });
-}
-
 class VisualizarImagem extends StatelessWidget {
-  final String imagePath;
+  final Uint8List imageBytes;
 
-  VisualizarImagem({required this.imagePath});
+  VisualizarImagem({required this.imageBytes});
 
   @override
   Widget build(BuildContext context) {
@@ -175,8 +185,8 @@ class VisualizarImagem extends StatelessWidget {
         backgroundColor: Colors.green,
       ),
       body: Center(
-        child: Image.file(
-          File(imagePath),
+        child: Image.memory(
+          imageBytes,
           fit: BoxFit.contain,
         ),
       ),

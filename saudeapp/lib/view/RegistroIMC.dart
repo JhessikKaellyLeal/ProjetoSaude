@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:saudeapp/control/imcController.dart';
 
 class RegistroIMC extends StatefulWidget {
+  final int userId; // Recebe o ID do usuário
   final Function(double, DateTime) onIMCUpdated;
 
-  RegistroIMC({required this.onIMCUpdated});
+  RegistroIMC({required this.userId, required this.onIMCUpdated});
 
   @override
   _RegistroIMCState createState() => _RegistroIMCState();
@@ -32,7 +33,7 @@ class _RegistroIMCState extends State<RegistroIMC> {
     if (_imc > 0) {
       final DateTime now = DateTime.now();
       try {
-        await imcController.registrarIMC(_imc, now);
+        await imcController.registrarIMC(widget.userId, _imc, now);
         widget.onIMCUpdated(_imc, now);
         _pesoController.clear();
         _alturaController.clear();

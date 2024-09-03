@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'RegistroIMC.dart';
-import 'BeberAgua.dart';
 import 'ControledeMedidas.dart';
 import 'package:intl/intl.dart';
 import 'dart:typed_data';
 import 'dart:io';
 import 'package:saudeapp/control/imcController.dart';
-import 'package:saudeapp/control/userController.dart'; // Adicione o import para o UserController
-import 'package:saudeapp/model/user.dart'; // Adicione esta linha
+import 'package:saudeapp/control/userController.dart'; // Import para o UserController
+import 'package:saudeapp/model/user.dart'; // Import para o modelo User
 
 class Home extends StatefulWidget {
+  final int userId; // Recebe o ID do usuário
+
+  Home({required this.userId});
+
   @override
   _HomeState createState() => _HomeState();
 }
@@ -22,8 +25,7 @@ class _HomeState extends State<Home> {
   final PageController _pageController = PageController();
   int _currentIndex = 0;
   final IMCController imcController = IMCController();
-  final UserController userController =
-      UserController(); // Adicione o UserController
+  final UserController userController = UserController();
 
   @override
   void initState() {
@@ -33,9 +35,8 @@ class _HomeState extends State<Home> {
 
   Future<void> _loadData() async {
     try {
-      final records = await imcController.getIMCRecords();
+      final records = await imcController.getIMCRecordsByUserId(widget.userId);
       setState(() {
-        // Carregar a imagem de perfil do banco de dados
         _loadProfileImage();
         imcData = records.map((record) {
           final formattedDate = DateFormat('dd/MM').format(record.data);
@@ -49,8 +50,7 @@ class _HomeState extends State<Home> {
 
   Future<void> _loadProfileImage() async {
     try {
-      // Suponha que o ID do usuário logado seja 1 (modifique conforme necessário)
-      User? user = await userController.getUserById(1);
+      User? user = await userController.getUserById(widget.userId);
       if (user != null && user.profileImage != null) {
         setState(() {
           profileImageBytes = user.profileImage!;
@@ -127,10 +127,13 @@ class _HomeState extends State<Home> {
               ),
             ),
           ),
-          // Página 2: Tela para Beber Água
-          BeberAgua(),
+
+          // Página 2: Tela para Beber Água (Não foi fornecida anteriormente, assumo que seja uma tela similar a ControleMedidas)
+          // Substitua pelo widget real ou adicione a tela apropriada aqui
+          // Por exemplo, BeberAgua(userId: widget.userId),
+
           // Página 3: Controle de Medidas Corporais
-          ControleMedidas(),
+          ControleMedidas(userId: widget.userId),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -147,10 +150,7 @@ class _HomeState extends State<Home> {
             icon: Icon(Icons.show_chart),
             label: 'Gráfico',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.local_drink),
-            label: 'Água',
-          ),
+         
           BottomNavigationBarItem(
             icon: Icon(Icons.scale),
             label: 'Medidas',
@@ -162,7 +162,10 @@ class _HomeState extends State<Home> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => RegistroIMC(onIMCUpdated: _updateIMC),
+              builder: (context) => RegistroIMC(
+                onIMCUpdated: _updateIMC,
+                userId: widget.userId, // Passando o userId corretamente aqui
+              ),
             ),
           );
         },

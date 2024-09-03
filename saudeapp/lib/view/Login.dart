@@ -23,24 +23,27 @@ class _LoginState extends State<Login> {
   }
 
   Future<void> _loginWithEmailAndPassword() async {
-    try {
-      User? user = await _loginController.loginWithEmailAndPassword(
-        _emailController.text,
-        _senhaController.text,
-      );
+  try {
+    User? user = await _loginController.loginWithEmailAndPassword(
+      _emailController.text,
+      _senhaController.text,
+    );
 
-      if (user != null) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => Home()),
-        );
-      } else {
-        _showErrorDialog('Email ou senha incorretos.');
-      }
-    } catch (e) {
-      _showErrorDialog('Erro ao fazer login: $e');
+    if (user != null) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => Home(userId: user.id!),
+        ),
+      );
+    } else {
+      _showErrorDialog('Email ou senha incorretos.');
     }
+  } catch (e) {
+    _showErrorDialog('Erro ao fazer login: $e');
   }
+}
+
 
   void _showErrorDialog(String message) {
     showDialog(

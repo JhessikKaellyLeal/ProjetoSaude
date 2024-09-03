@@ -9,7 +9,7 @@ class UserController {
   final DatabaseHelper _databaseHelper = DatabaseHelper();
 
   // Método para salvar um novo usuário
-  Future<int> saveUser(User user) async {
+  Future<int> addUser(User user) async {
     final db = await _databaseHelper.database;
     return await db.insert('users', user.toMap());
   }
