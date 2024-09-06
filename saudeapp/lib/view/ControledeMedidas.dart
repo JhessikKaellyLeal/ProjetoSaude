@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:saudeapp/control/MedidasCorporaisController.dart';
+import 'package:saudeapp/control/medidasCorporaisController.dart';
 import 'dart:typed_data';
 import 'package:saudeapp/model/medidasCorporais.dart';
 
@@ -18,6 +18,7 @@ class _ControleMedidasState extends State<ControleMedidas> {
   final TextEditingController _quadrilController = TextEditingController();
   final MedidaCorporalController _medidaController = MedidaCorporalController();
   final List<MedidaCorporal> _medidas = [];
+  Uint8List? _selectedImage; // Para armazenar a imagem selecionada
 
   @override
   void initState() {
@@ -25,33 +26,47 @@ class _ControleMedidasState extends State<ControleMedidas> {
     _carregarMedidas();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Garantir que os dados sejam recarregados sempre que a tela for exibida
+    _carregarMedidas();
+  }
+
   Future<void> _carregarMedidas() async {
     final medidas = await _medidaController.getMedidasByUserId(widget.userId);
     setState(() {
+      _medidas.clear();
       _medidas.addAll(medidas);
     });
   }
 
-  void _adicionarMedida({bool fromCamera = false}) async {
+  Future<void> _adicionarImagem({bool fromCamera = false}) async {
+    final XFile? image = await ImagePicker().pickImage(
+      source: fromCamera ? ImageSource.camera : ImageSource.gallery,
+    );
+
+    if (image != null) {
+      final imageBytes = await image.readAsBytes();
+      setState(() {
+        _selectedImage = imageBytes;
+      });
+    }
+  }
+
+  Future<void> _salvarMedida() async {
     final double cintura = double.tryParse(_cinturaController.text) ?? 0;
     final double quadril = double.tryParse(_quadrilController.text) ?? 0;
 
-    if (cintura > 0 && quadril > 0) {
-      final XFile? image = await ImagePicker().pickImage(
-        source: fromCamera ? ImageSource.camera : ImageSource.gallery,
-      );
-
-      if (image != null) {
-        final imageBytes = await image.readAsBytes();
-        final userId = widget.userId;
-
+    if (cintura > 0 && quadril > 0 && _selectedImage != null) {
+      try {
         final id = await _medidaController.saveMedidaCorporal(
           MedidaCorporal(
             cintura: cintura,
             quadril: quadril,
             data: DateTime.now(),
-            imagePath: imageBytes,
-            idusuario: userId,
+            imagePath: _selectedImage!,
+            idusuario: widget.userId,
           ),
         );
 
@@ -61,18 +76,33 @@ class _ControleMedidasState extends State<ControleMedidas> {
             cintura: cintura,
             quadril: quadril,
             data: DateTime.now(),
-            imagePath: imageBytes,
-            idusuario: userId,
+            imagePath: _selectedImage!,
+            idusuario: widget.userId,
           ));
+          _cinturaController.clear();
+          _quadrilController.clear();
+          _selectedImage = null;
         });
 
-        _cinturaController.clear();
-        _quadrilController.clear();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Medida cadastrada com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao cadastrar medida!'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Por favor, insira valores válidos para cintura e quadril!'),
+          content: Text('Por favor, insira valores válidos para cintura, quadril e selecione uma imagem!'),
+          backgroundColor: Colors.orange,
         ),
       );
     }
@@ -116,12 +146,16 @@ class _ControleMedidasState extends State<ControleMedidas> {
                   border: OutlineInputBorder(),
                 ),
               ),
-              SizedBox(height: 32),
+              SizedBox(height: 16),
+              _selectedImage == null
+                  ? Text('Nenhuma imagem selecionada.')
+                  : Image.memory(_selectedImage!, height: 100, width: 100, fit: BoxFit.cover),
+              SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   ElevatedButton.icon(
-                    onPressed: () => _adicionarMedida(fromCamera: true),
+                    onPressed: () => _adicionarImagem(fromCamera: true),
                     icon: Icon(Icons.camera_alt),
                     label: Text('Capturar Foto'),
                     style: ElevatedButton.styleFrom(
@@ -131,7 +165,7 @@ class _ControleMedidasState extends State<ControleMedidas> {
                   ),
                   SizedBox(width: 20),
                   ElevatedButton.icon(
-                    onPressed: () => _adicionarMedida(fromCamera: false),
+                    onPressed: () => _adicionarImagem(fromCamera: false),
                     icon: Icon(Icons.photo_library),
                     label: Text('Selecionar da Galeria'),
                     style: ElevatedButton.styleFrom(
@@ -142,28 +176,39 @@ class _ControleMedidasState extends State<ControleMedidas> {
                 ],
               ),
               SizedBox(height: 32),
-              ListView.builder(
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                itemCount: _medidas.length,
-                itemBuilder: (context, index) {
-                  final medida = _medidas[index];
-                  return Card(
-                    child: ListTile(
-                      title: Text(
-                        'Cintura: ${medida.cintura} cm, Quadril: ${medida.quadril} cm',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                      subtitle: Text(
-                        'Data: ${medida.data.day}/${medida.data.month}/${medida.data.year}',
-                        style: TextStyle(fontSize: 14),
-                      ),
-                      leading: Icon(Icons.image),
-                      onTap: () => _mostrarImagem(medida.imagePath),
-                    ),
-                  );
-                },
+              ElevatedButton(
+                onPressed: _salvarMedida,
+                child: Text('Salvar Medida'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange, // Cor do botão
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                ),
               ),
+              SizedBox(height: 32),
+              _medidas.isEmpty
+                  ? Text('Nenhuma medida registrada.')
+                  : ListView.builder(
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      itemCount: _medidas.length,
+                      itemBuilder: (context, index) {
+                        final medida = _medidas[index];
+                        return Card(
+                          child: ListTile(
+                            title: Text(
+                              'Cintura: ${medida.cintura} cm, Quadril: ${medida.quadril} cm',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                            subtitle: Text(
+                              'Data: ${medida.data.day}/${medida.data.month}/${medida.data.year}',
+                              style: TextStyle(fontSize: 14),
+                            ),
+                            leading: Icon(Icons.image),
+                            onTap: () => _mostrarImagem(medida.imagePath),
+                          ),
+                        );
+                      },
+                    ),
             ],
           ),
         ),

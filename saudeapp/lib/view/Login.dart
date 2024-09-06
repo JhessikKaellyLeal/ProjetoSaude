@@ -24,7 +24,7 @@ class _LoginState extends State<Login> {
 
   Future<void> _loginWithEmailAndPassword() async {
   try {
-    User? user = await _loginController.loginWithEmailAndPassword(
+    User? user = await _loginController.loginWithEmailPassword(
       _emailController.text,
       _senhaController.text,
     );

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:saudeapp/control/imcController.dart';
+import 'package:saudeapp/model/imcModel.dart';
 
 class RegistroIMC extends StatefulWidget {
-  final int userId; // Recebe o ID do usuário
+   int userId; // Recebe o ID do usuário
   final Function(double, DateTime) onIMCUpdated;
 
   RegistroIMC({required this.userId, required this.onIMCUpdated});
@@ -33,7 +34,8 @@ class _RegistroIMCState extends State<RegistroIMC> {
     if (_imc > 0) {
       final DateTime now = DateTime.now();
       try {
-        await imcController.registrarIMC(widget.userId, _imc, now);
+        
+        await imcController.registrarIMC(widget.userId,_imc,now);
         widget.onIMCUpdated(_imc, now);
         _pesoController.clear();
         _alturaController.clear();
@@ -43,7 +45,7 @@ class _RegistroIMCState extends State<RegistroIMC> {
       } catch (e) {
         print('Erro ao registrar IMC: $e');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao registrar IMC.')),
+          SnackBar(content: Text('Erro ao registrar IMC. $e')),
         );
       }
     } else {

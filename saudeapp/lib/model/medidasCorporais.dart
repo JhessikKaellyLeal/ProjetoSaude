@@ -1,13 +1,13 @@
-import 'dart:convert'; // Adicione isto para base64
+import 'dart:convert';
 import 'dart:typed_data';
 
 class MedidaCorporal {
   final int? id;
-  final int idusuario; // ID do usuário
+  final int idusuario;
   final double cintura;
   final double quadril;
   final DateTime data;
-  final Uint8List imagePath; // Imagem em bytes
+  final Uint8List imagePath;
 
   MedidaCorporal({
     this.id,
@@ -18,7 +18,6 @@ class MedidaCorporal {
     required this.imagePath,
   });
 
-  // Método para converter MedidaCorporal para um Map (para inserir no banco)
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -26,11 +25,10 @@ class MedidaCorporal {
       'cintura': cintura,
       'quadril': quadril,
       'data': data.toIso8601String(),
-      'imagePath': base64Encode(imagePath), // Convertendo Uint8List para base64 String
+      'imagePath': base64Encode(imagePath),
     };
   }
 
-  // Método para criar um objeto MedidaCorporal a partir de um Map (para ler do banco)
   factory MedidaCorporal.fromMap(Map<String, dynamic> map) {
     return MedidaCorporal(
       id: map['id'],
@@ -38,7 +36,7 @@ class MedidaCorporal {
       cintura: map['cintura'],
       quadril: map['quadril'],
       data: DateTime.parse(map['data']),
-      imagePath: base64Decode(map['imagePath']), // Convertendo base64 String de volta para Uint8List
+      imagePath: base64Decode(map['imagePath']),
     );
   }
 }

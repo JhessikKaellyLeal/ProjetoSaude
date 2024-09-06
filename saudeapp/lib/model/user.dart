@@ -11,6 +11,7 @@ class User {
   String senha;
   Uint8List? profileImage;
 
+//construtor
   User({
     this.id,
     required this.nome,

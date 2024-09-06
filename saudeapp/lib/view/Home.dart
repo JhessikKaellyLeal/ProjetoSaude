@@ -37,11 +37,11 @@ class _HomeState extends State<Home> {
     try {
       final records = await imcController.getIMCRecordsByUserId(widget.userId);
       setState(() {
-        _loadProfileImage();
         imcData = records.map((record) {
           final formattedDate = DateFormat('dd/MM').format(record.data);
           return _ChartData(formattedDate, record.imc);
         }).toList();
+        _loadProfileImage(); // Carrega a imagem de perfil após carregar os dados do IMC
       });
     } catch (e) {
       print('Erro ao carregar dados: $e');
@@ -63,6 +63,9 @@ class _HomeState extends State<Home> {
       }
     } catch (e) {
       print('Erro ao carregar a imagem de perfil: $e');
+      setState(() {
+        hasProfileImage = false;
+      });
     }
   }
 
@@ -150,7 +153,6 @@ class _HomeState extends State<Home> {
             icon: Icon(Icons.show_chart),
             label: 'Gráfico',
           ),
-         
           BottomNavigationBarItem(
             icon: Icon(Icons.scale),
             label: 'Medidas',

@@ -89,7 +89,7 @@ class _CadastroState extends State<Cadastro> {
 
 
 
-  void _salvarCadastro() async {
+ /* void _salvarCadastro() async {
 
     try {
       UserController userController = UserController();
@@ -104,7 +104,7 @@ class _CadastroState extends State<Cadastro> {
       );
 
       // Salvar o usuário
-      int userId = await userController.saveUser(newUser);
+      int userId = await userController.addUser(newUser);
 
       // Salvar a imagem de perfil, se disponível
       if (_imageBytes != null) {
@@ -147,7 +147,7 @@ class _CadastroState extends State<Cadastro> {
         ),
       );
     }
-  }
+  }*/
 
   void _onPageChanged(int index) {
     setState(() {
@@ -198,10 +198,15 @@ void salvarcadastro()async{
         ), 
       );
 
-
-  }catch(e){
-
-  }
+  }catch(e){ // mensagem de erro ao tentar cadastrar usuário
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Cadastro não realizado!"),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 5),
+        ),
+      );
+  }// fim do try catch
 
 }//final do metodo salvar cadastro
 
@@ -335,7 +340,7 @@ void salvarcadastro()async{
                   SizedBox(height: 20),
                 ],
                 ElevatedButton(
-                  onPressed: _salvarCadastro,
+                  onPressed: salvarcadastro,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green.shade700,
                     foregroundColor: Colors.white,

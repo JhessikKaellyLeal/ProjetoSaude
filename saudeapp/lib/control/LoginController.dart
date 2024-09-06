@@ -1,27 +1,40 @@
 import 'package:flutter/services.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:saudeapp/control/bancoDados.dart';
-import 'package:saudeapp/model/user.dart';
 import 'package:sqflite/sqflite.dart';
 
+
+import 'package:saudeapp/control/bancoDados.dart';
+import 'package:saudeapp/model/user.dart';
+
+// classe para realizar login do usuário
 class LoginController {
-  final DatabaseHelper _databaseHelper = DatabaseHelper();
 
-  // Método para autenticar o usuário com email e senha
-  Future<User?> loginWithEmailAndPassword(String email, String senha) async {
-    final db = await _databaseHelper.database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'users',
-      where: 'email = ? AND senha = ?',
-      whereArgs: [email, senha],
-    );
+  // chamando o banco de dados, DatabaseHelp é o nome 
+  //do meu banco de dados, BancodeDados
+ final DatabaseHelper _bancodedados = DatabaseHelper();
 
-    if (maps.isNotEmpty) {
-      return User.fromMap(maps.first);
-    } else {
-      return null; // Retorna null se as credenciais forem inválidas
+ // metodo de autenticação com e-mail e senha
+ Future<User?> loginWithEmailPassword (String email, String senha) async{
+    // startar a variavel de banco de dados para usar os metodos
+      final db = await _bancodedados.database;
+
+    // listar os usuários cadastrados no banco de dados
+    // 'users' nome da tabela usuário do meu banco de dados
+    final List<Map<String, dynamic>> lista = await db.query(
+        'users', where: 'email =? AND senha=?',
+        whereArgs: [email,senha],
+    );//final da verificação de email e senha no banco de dados
+
+    if(lista.isNotEmpty){
+      return User.fromMap(lista.first);
+      //se lista não for nula , retorne os dados do usuário
+    }else{
+      return null; 
+      //se lista for nula, retorne null .
     }
-  }
 
-  // Método para login com Google
+
+ }// fim do metodo de autenticação com e-mail e senha
+
+  
+  
 }
