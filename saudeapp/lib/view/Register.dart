@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:saudeapp/control/UserController.dart';
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:saudeapp/model/user.dart';
 
 class Cadastro extends StatefulWidget {
   @override
@@ -8,21 +11,20 @@ class Cadastro extends StatefulWidget {
 }
 
 class _CadastroState extends State<Cadastro> {
+
   final PageController _pageController = PageController();
   int _currentIndex = 0;
-
   final TextEditingController _nomeController = TextEditingController();
   final TextEditingController _cpfController = TextEditingController();
   final TextEditingController _dataNascimentoController =
-      TextEditingController();
+    TextEditingController();
   String _sexo = 'Masculino';
-
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _senhaController = TextEditingController();
 
   bool _cadastroGoogle = false;
-
   File? _profileImage;
+  Uint8List? _imageBytes;
 
   @override
   void dispose() {
@@ -42,6 +44,7 @@ class _CadastroState extends State<Cadastro> {
     if (pickedFile != null) {
       setState(() {
         _profileImage = File(pickedFile.path);
+        _imageBytes = _profileImage!.readAsBytesSync();
       });
     }
   }
@@ -77,21 +80,74 @@ class _CadastroState extends State<Cadastro> {
     );
   }
 
-  void _salvarCadastro() {
-    // Salve os dados do cadastro, incluindo a imagem do perfil
-    _nomeController.clear();
-    _cpfController.clear();
-    _emailController.clear();
-    _senhaController.clear();
-    _dataNascimentoController.clear();
-    setState(() {
-      _sexo = 'Masculino';
-      _cadastroGoogle = false;
-      _currentIndex = 0;
-      _profileImage = null;
-    });
-    Navigator.pop(context);
-  }
+
+
+
+
+
+
+
+
+
+ /* void _salvarCadastro() async {
+
+    try {
+      UserController userController = UserController();
+
+      User newUser = User(
+        nome: _nomeController.text,
+        cpf: _cpfController.text,
+        dataNascimento: _dataNascimentoController.text,
+        sexo: _sexo,
+        email: _emailController.text,
+        senha: _senhaController.text,
+      );
+
+      // Salvar o usuário
+      int userId = await userController.addUser(newUser);
+
+      // Salvar a imagem de perfil, se disponível
+      if (_imageBytes != null) {
+        await userController.saveProfileImage(userId, _imageBytes!);
+      }
+
+      // Limpar os campos
+      _nomeController.clear();
+      _cpfController.clear();
+      _emailController.clear();
+      _senhaController.clear();
+      _dataNascimentoController.clear();
+
+      setState(() {
+        _sexo = 'Masculino';
+        _cadastroGoogle = false;
+        _currentIndex = 0;
+        _profileImage = null;
+        _imageBytes = null;
+      });
+
+      // Mostrar mensagem de sucesso
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Dados salvos com sucesso!'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
+      );
+
+      // Retornar à tela de login (assumindo que é a primeira tela no stack)
+      Navigator.popUntil(context, ModalRoute.withName('/'));
+    } catch (e) {
+      // Mostrar mensagem de erro
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao salvar dados. Tente novamente.'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }*/
 
   void _onPageChanged(int index) {
     setState(() {
@@ -106,6 +162,54 @@ class _CadastroState extends State<Cadastro> {
       curve: Curves.easeInOut,
     );
   }
+
+
+//criar metodo para salvar cadastro
+void salvarcadastro()async{
+  // try catch serve para tratar erros
+  try{ 
+    // Objeto da classe user controller
+    // variavel me permite chamar o metodo de salvar usuário
+    UserController useController = UserController();
+    
+    // salvar os dados que o usuário digitou na classe model
+    // User é minha classe model do usuário
+    User usuario =User(
+        nome: _nomeController.text,
+        cpf: _cpfController.text,
+        dataNascimento: _dataNascimentoController.text,
+        sexo: _sexo,
+        email: _emailController.text,
+        senha: _senhaController.text,
+    ); // final da inserção dos dados na classe model
+
+    // salvar usuário 
+    int userId = await useController.addUser(usuario);
+    /* criando uma variavel do tipo int para guardar o id do novo
+     usuario criado, e manda ao banco de dados através do
+     metodo de adicionar um novo usuário*/
+
+     //mensagem de sucesso para o cadastro
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Cadastro realizado com sucesso!"), 
+          backgroundColor: Colors.green, //mensagem em caixa verde
+          duration: Duration(seconds: 5),// mensagem dura 5 segundos
+        ), 
+      );
+
+  }catch(e){ // mensagem de erro ao tentar cadastrar usuário
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Cadastro não realizado!"),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 5),
+        ),
+      );
+  }// fim do try catch
+
+}//final do metodo salvar cadastro
+
 
   @override
   Widget build(BuildContext context) {
@@ -236,7 +340,7 @@ class _CadastroState extends State<Cadastro> {
                   SizedBox(height: 20),
                 ],
                 ElevatedButton(
-                  onPressed: _salvarCadastro,
+                  onPressed: salvarcadastro,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green.shade700,
                     foregroundColor: Colors.white,
@@ -245,22 +349,6 @@ class _CadastroState extends State<Cadastro> {
                   child: Text('Salvar Cadastro'),
                 ),
                 SizedBox(height: 20),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    setState(() {
-                      _cadastroGoogle = true;
-                      _emailController.text = 'usuario@gmail.com';
-                      _senhaController.text = '********';
-                    });
-                  },
-                  icon: Icon(Icons.login, color: Colors.white),
-                  label: Text('Cadastrar com Google'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green.shade400,
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                  ),
-                ),
               ],
             ),
           ),
