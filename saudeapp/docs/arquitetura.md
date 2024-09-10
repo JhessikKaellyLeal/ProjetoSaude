@@ -13,6 +13,18 @@ Para a criação do Saude++ foi utilizado a arquitetura MVC:
 - O user **(Model)** ela envia e/ou recebe os dados do banco de dados SqLite.
 - O UserController **(Controller)** retorna os dados para a tela **(View)**.
 
-![Diagrama de Caso de Uso](saudeapp\docs\casodeuso.png)
+<!-- Codigo para por imagens dentro da documentação -->
+![Diagrama de Caso de Uso](saudeapp/docs/casodeuso.png)
 
+# Banco de Dados
 
+' Tabela Usuario '
+- **id** : identificador unico para o usuário
+- **nome** : nome do usuário
+- **cpf** : cpf do usuário
+- **datanascimento** : Data de nascimento do usuário
+
+' Tabela IMC'
+- **id** : identificador único para o IMC do usuário
+- **idusuario** : armazena o identificado do usuário a qual o imc pertence.
+- 
