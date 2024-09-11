@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 class MedidaCorporal {
   final int? id;
@@ -7,7 +6,7 @@ class MedidaCorporal {
   final double cintura;
   final double quadril;
   final DateTime data;
-  final Uint8List imagePath;
+  final String imagemUrl; // Alterado para URL
 
   MedidaCorporal({
     this.id,
@@ -15,7 +14,7 @@ class MedidaCorporal {
     required this.cintura,
     required this.quadril,
     required this.data,
-    required this.imagePath,
+    required this.imagemUrl, // Alterado para URL
   });
 
   Map<String, dynamic> toMap() {
@@ -25,7 +24,7 @@ class MedidaCorporal {
       'cintura': cintura,
       'quadril': quadril,
       'data': data.toIso8601String(),
-      'imagePath': base64Encode(imagePath),
+      'imagemUrl': imagemUrl, // Alterado para URL
     };
   }
 
@@ -36,7 +35,7 @@ class MedidaCorporal {
       cintura: map['cintura'],
       quadril: map['quadril'],
       data: DateTime.parse(map['data']),
-      imagePath: base64Decode(map['imagePath']),
+      imagemUrl: map['imagemUrl'], // Alterado para URL
     );
   }
 }

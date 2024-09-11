@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:saudeapp/control/bancoDados.dart';
 import 'package:saudeapp/model/medidasCorporais.dart';
 

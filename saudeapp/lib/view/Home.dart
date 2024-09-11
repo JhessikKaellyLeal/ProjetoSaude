@@ -1,10 +1,10 @@
+import 'dart:typed_data';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'RegistroIMC.dart';
 import 'ControledeMedidas.dart';
 import 'package:intl/intl.dart';
-import 'dart:typed_data';
-import 'dart:io';
 import 'package:saudeapp/control/imcController.dart';
 import 'package:saudeapp/control/userController.dart'; // Import para o UserController
 import 'package:saudeapp/model/user.dart'; // Import para o modelo User
@@ -19,18 +19,20 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  late Uint8List profileImageBytes; // Imagem de perfil em bytes
-  late bool hasProfileImage; // Verifica se a imagem de perfil existe
-  List<_ChartData> imcData = [];
-  final PageController _pageController = PageController();
-  int _currentIndex = 0;
-  final IMCController imcController = IMCController();
-  final UserController userController = UserController();
+  Uint8List? profileImageBytes; // Imagem de perfil em bytes, pode ser null
+  bool hasProfileImage = false; // Verifica se a imagem de perfil existe
+  List<_ChartData> imcData = []; // Dados para o gráfico de IMC
+  final PageController _pageController =
+      PageController(); // Controlador da PageView
+  int _currentIndex = 0; // Índice da página atual
+  final IMCController imcController = IMCController(); // Controlador de IMC
+  final UserController userController =
+      UserController(); // Controlador de Usuário
 
   @override
   void initState() {
     super.initState();
-    _loadData();
+    _loadData(); // Carrega os dados iniciais
   }
 
   Future<void> _loadData() async {
@@ -44,7 +46,7 @@ class _HomeState extends State<Home> {
         _loadProfileImage(); // Carrega a imagem de perfil após carregar os dados do IMC
       });
     } catch (e) {
-      print('Erro ao carregar dados: $e');
+      print('Erro ao carregar dados: $e'); // Erro ao carregar dados
     }
   }
 
@@ -62,7 +64,8 @@ class _HomeState extends State<Home> {
         });
       }
     } catch (e) {
-      print('Erro ao carregar a imagem de perfil: $e');
+      print(
+          'Erro ao carregar a imagem de perfil: $e'); // Erro ao carregar a imagem de perfil
       setState(() {
         hasProfileImage = false;
       });
@@ -88,6 +91,16 @@ class _HomeState extends State<Home> {
       appBar: AppBar(
         title: Text('Home'),
         backgroundColor: Colors.green,
+        actions: [
+          // Botão para sair do aplicativo
+          IconButton(
+            icon: Icon(Icons.exit_to_app),
+            onPressed: () {
+              // Fecha o aplicativo
+              exit(0);
+            },
+          ),
+        ],
       ),
       body: PageView(
         controller: _pageController,
@@ -103,7 +116,7 @@ class _HomeState extends State<Home> {
                   CircleAvatar(
                     radius: 50,
                     backgroundImage: hasProfileImage
-                        ? MemoryImage(profileImageBytes)
+                        ? MemoryImage(profileImageBytes!)
                         : AssetImage('assets/images/default_profile.png')
                             as ImageProvider,
                     child:
@@ -131,11 +144,7 @@ class _HomeState extends State<Home> {
             ),
           ),
 
-          // Página 2: Tela para Beber Água (Não foi fornecida anteriormente, assumo que seja uma tela similar a ControleMedidas)
-          // Substitua pelo widget real ou adicione a tela apropriada aqui
-          // Por exemplo, BeberAgua(userId: widget.userId),
-
-          // Página 3: Controle de Medidas Corporais
+          // Página 2: Controle de Medidas Corporais
           ControleMedidas(userId: widget.userId),
         ],
       ),

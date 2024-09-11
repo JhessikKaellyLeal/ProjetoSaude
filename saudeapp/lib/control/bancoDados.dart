@@ -51,19 +51,17 @@ class DatabaseHelper {
       )
     ''');
 
-
     // Tabela de Medidas Corporais
     await db.execute('''
-      CREATE TABLE medidas (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        cintura REAL NOT NULL,
-        quadril REAL NOT NULL,
-        data TEXT NOT NULL,
-        imagem TEXT,
-        idusuario INTEGER NOT NULL,
-        FOREIGN KEY (idusuario) REFERENCES users(id)
-      )
+     CREATE TABLE medidas (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      cintura REAL NOT NULL,
+      quadril REAL NOT NULL,
+      data TEXT NOT NULL,
+      imagemUrl TEXT, -- Alterado para URL
+      idusuario INTEGER NOT NULL,
+      FOREIGN KEY (idusuario) REFERENCES users(id)
+    )
     ''');
   }
-
 }

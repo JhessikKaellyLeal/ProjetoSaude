@@ -1,7 +1,7 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:saudeapp/control/medidasCorporaisController.dart';
-import 'dart:typed_data';
 import 'package:saudeapp/model/medidasCorporais.dart';
 
 class ControleMedidas extends StatefulWidget {
@@ -18,18 +18,11 @@ class _ControleMedidasState extends State<ControleMedidas> {
   final TextEditingController _quadrilController = TextEditingController();
   final MedidaCorporalController _medidaController = MedidaCorporalController();
   final List<MedidaCorporal> _medidas = [];
-  Uint8List? _selectedImage; // Para armazenar a imagem selecionada
+  String? _selectedImageUrl; // Armazena a URL da imagem selecionada
 
   @override
   void initState() {
     super.initState();
-    _carregarMedidas();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Garantir que os dados sejam recarregados sempre que a tela for exibida
     _carregarMedidas();
   }
 
@@ -48,24 +41,33 @@ class _ControleMedidasState extends State<ControleMedidas> {
 
     if (image != null) {
       final imageBytes = await image.readAsBytes();
+      final imageUrl = await uploadImage(
+          imageBytes); // Enviar imagem para armazenamento e obter URL
+
       setState(() {
-        _selectedImage = imageBytes;
+        _selectedImageUrl = imageUrl;
       });
     }
+  }
+
+  Future<String> uploadImage(Uint8List imageBytes) async {
+    // Implementar lógica para upload da imagem e retornar o URL
+    // Placeholder para URL de imagem
+    return 'https://example.com/image.jpg';
   }
 
   Future<void> _salvarMedida() async {
     final double cintura = double.tryParse(_cinturaController.text) ?? 0;
     final double quadril = double.tryParse(_quadrilController.text) ?? 0;
 
-    if (cintura > 0 && quadril > 0 && _selectedImage != null) {
+    if (cintura > 0 && quadril > 0 && _selectedImageUrl != null) {
       try {
         final id = await _medidaController.saveMedidaCorporal(
           MedidaCorporal(
             cintura: cintura,
             quadril: quadril,
             data: DateTime.now(),
-            imagePath: _selectedImage!,
+            imagemUrl: _selectedImageUrl!, // Utiliza URL da imagem
             idusuario: widget.userId,
           ),
         );
@@ -76,12 +78,12 @@ class _ControleMedidasState extends State<ControleMedidas> {
             cintura: cintura,
             quadril: quadril,
             data: DateTime.now(),
-            imagePath: _selectedImage!,
+            imagemUrl: _selectedImageUrl!,
             idusuario: widget.userId,
           ));
           _cinturaController.clear();
           _quadrilController.clear();
-          _selectedImage = null;
+          _selectedImageUrl = null;
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -93,7 +95,7 @@ class _ControleMedidasState extends State<ControleMedidas> {
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erro ao cadastrar medida!'),
+            content: Text('Erro ao cadastrar medida! $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -101,18 +103,19 @@ class _ControleMedidasState extends State<ControleMedidas> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Por favor, insira valores válidos para cintura, quadril e selecione uma imagem!'),
+          content: Text(
+              'Por favor, insira valores válidos para cintura, quadril e selecione uma imagem!'),
           backgroundColor: Colors.orange,
         ),
       );
     }
   }
 
-  void _mostrarImagem(Uint8List imageBytes) {
+  void _mostrarImagem(String imageUrl) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => VisualizarImagem(imageBytes: imageBytes),
+        builder: (context) => VisualizarImagem(imageUrl: imageUrl),
       ),
     );
   }
@@ -147,9 +150,14 @@ class _ControleMedidasState extends State<ControleMedidas> {
                 ),
               ),
               SizedBox(height: 16),
-              _selectedImage == null
+              _selectedImageUrl == null
                   ? Text('Nenhuma imagem selecionada.')
-                  : Image.memory(_selectedImage!, height: 100, width: 100, fit: BoxFit.cover),
+                  : Image.network(
+                      _selectedImageUrl!,
+                      height: 100,
+                      width: 100,
+                      fit: BoxFit.cover,
+                    ),
               SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -157,58 +165,85 @@ class _ControleMedidasState extends State<ControleMedidas> {
                   ElevatedButton.icon(
                     onPressed: () => _adicionarImagem(fromCamera: true),
                     icon: Icon(Icons.camera_alt),
-                    label: Text('Capturar Foto'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    ),
+                    label: Text('Câmera'),
                   ),
-                  SizedBox(width: 20),
+                  SizedBox(width: 16),
                   ElevatedButton.icon(
-                    onPressed: () => _adicionarImagem(fromCamera: false),
-                    icon: Icon(Icons.photo_library),
-                    label: Text('Selecionar da Galeria'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    ),
+                    onPressed: () => _adicionarImagem(),
+                    icon: Icon(Icons.image),
+                    label: Text('Galeria'),
                   ),
                 ],
               ),
-              SizedBox(height: 32),
+              SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _salvarMedida,
                 child: Text('Salvar Medida'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange, // Cor do botão
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                ),
               ),
-              SizedBox(height: 32),
-              _medidas.isEmpty
-                  ? Text('Nenhuma medida registrada.')
-                  : ListView.builder(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      itemCount: _medidas.length,
-                      itemBuilder: (context, index) {
-                        final medida = _medidas[index];
-                        return Card(
-                          child: ListTile(
-                            title: Text(
-                              'Cintura: ${medida.cintura} cm, Quadril: ${medida.quadril} cm',
-                              style: TextStyle(fontSize: 16),
+              SizedBox(height: 16),
+              Text(
+                'Medidas Registradas:',
+                style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold), // Estilo genérico
+              ),
+              ListView.builder(
+                shrinkWrap: true,
+                itemCount: _medidas.length,
+                itemBuilder: (context, index) {
+                  final medida = _medidas[index];
+                  return ListTile(
+                    title: Text(
+                        'Cintura: ${medida.cintura} cm, Quadril: ${medida.quadril} cm'),
+                    subtitle: Text('Data: ${medida.data.toLocal()}'),
+                    leading: medida.imagemUrl.isNotEmpty
+                        ? GestureDetector(
+                            onTap: () => _mostrarImagem(medida.imagemUrl),
+                            child: Image.network(
+                              medida.imagemUrl,
+                              height: 50,
+                              width: 50,
+                              fit: BoxFit.cover,
                             ),
-                            subtitle: Text(
-                              'Data: ${medida.data.day}/${medida.data.month}/${medida.data.year}',
-                              style: TextStyle(fontSize: 14),
-                            ),
-                            leading: Icon(Icons.image),
-                            onTap: () => _mostrarImagem(medida.imagePath),
-                          ),
+                          )
+                        : null,
+                    trailing: IconButton(
+                      icon: Icon(Icons.delete),
+                      onPressed: () async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              title: Text('Confirmar Exclusão'),
+                              content:
+                                  Text('Deseja realmente excluir esta medida?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(true),
+                                  child: Text('Sim'),
+                                ),
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(false),
+                                  child: Text('Não'),
+                                ),
+                              ],
+                            );
+                          },
                         );
+                        if (confirm == true) {
+                          await _medidaController
+                              .deleteMedidaCorporal(medida.id!);
+                          setState(() {
+                            _medidas.removeAt(index);
+                          });
+                        }
                       },
                     ),
+                  );
+                },
+              ),
             ],
           ),
         ),
@@ -218,22 +253,18 @@ class _ControleMedidasState extends State<ControleMedidas> {
 }
 
 class VisualizarImagem extends StatelessWidget {
-  final Uint8List imageBytes;
+  final String imageUrl;
 
-  VisualizarImagem({required this.imageBytes});
+  VisualizarImagem({required this.imageUrl});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Imagem'),
-        backgroundColor: Colors.green,
+        title: Text('Visualizar Imagem'),
       ),
       body: Center(
-        child: Image.memory(
-          imageBytes,
-          fit: BoxFit.contain,
-        ),
+        child: Image.network(imageUrl),
       ),
     );
   }
