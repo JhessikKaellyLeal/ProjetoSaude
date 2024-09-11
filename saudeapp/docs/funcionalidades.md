@@ -3,7 +3,7 @@
 O aplicativo de controle de peso, IMC e medidas corporais oferece as seguintes funcionalidades principais:
 
 <!-- Codigo para por imagens dentro da documentação -->
-![Diagrama de Caso de Uso](docs/casodeuso.png)
+![Diagrama de Caso de Uso](saudeapp/docs/casodeuso.png)
 
 1. **Registro de Usuário**
 Os usuários podem se cadastrar no aplicativo fornecendo informações como nome, CPF, data de nascimento, sexo, e-mail e senha. Além disso, podem adicionar uma foto de perfil que pode ser tirada diretamente com a câmera ou selecionada da galeria.

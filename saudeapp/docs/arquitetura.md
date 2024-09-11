@@ -18,6 +18,8 @@ Para a criação do Saude++ foi utilizado a arquitetura MVC:
 
 # Banco de Dados
 
+![Diagrama Conceitual Banco de Dados](saudeapp/docs/der.jpg)
+
 ' Tabela Usuario '
 - **id** : identificador unico para o usuário
 - **nome** : nome do usuário
